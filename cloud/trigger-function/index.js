@@ -92,7 +92,10 @@ async function startJulesSession(prompt) {
  * @param {{data: {bucket: string, name: string, contentType?: string, metadata?: object}}} cloudEvent
  */
 exports.onSourceVideo = async (cloudEvent) => {
-  const obj = cloudEvent && cloudEvent.data;
+  const obj =
+    cloudEvent && cloudEvent.data && cloudEvent.data.name
+      ? cloudEvent.data
+      : cloudEvent;
   if (!obj || !obj.name) {
     console.log("No object in event — ignoring.");
     return;
