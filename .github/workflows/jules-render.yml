@@ -1,0 +1,80 @@
+name: Jules render on PR merge
+
+# When a Jules EDIT pull request is merged to main, start a Jules RENDER session that
+# renders the edited chunks inside its VM, assembles out/final.mp4, and uploads it to GCS.
+# Render only fires for merged PRs whose branch came from Jules (head_ref starts with "jules").
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  # Manual fallback: trigger a render against an explicit source gs:// URI.
+  workflow_dispatch:
+    inputs:
+      source_uri:
+        description: "gs:// URI of the source video to render against"
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  render:
+    # Skip non-merges and non-Jules PRs (a closed-without-merge PR must not render).
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       startsWith(github.event.pull_request.head.ref, 'jules'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve source gs:// URI
+        id: src
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          DISPATCH_URI: ${{ github.event.inputs.source_uri }}
+        run: |
+          if [ -n "$DISPATCH_URI" ]; then
+            uri="$DISPATCH_URI"
+          else
+            # Parse the exact "Source: gs://..." line that the EDIT session wrote into the PR body.
+            uri="$(printf '%s\n' "$PR_BODY" | sed -nE 's/^Source:[[:space:]]*(gs:\/\/[^[:space:])]+).*/\1/p' | head -n1)"
+          fi
+          if [ -z "$uri" ]; then
+            echo "::error::No source gs:// URI found (PR body 'Source:' line missing)."
+            exit 1
+          fi
+          echo "uri=$uri" >> "$GITHUB_OUTPUT"
+          echo "Render source: $uri"
+
+      - name: Start Jules RENDER session
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+          JULES_REPO: ${{ vars.JULES_REPO }}              # e.g. sources/github/<owner>/videos-remotion-veo
+          RENDERED_BUCKET: ${{ vars.RENDERED_BUCKET }}    # e.g. my-proj-rendered-videos
+          SOURCE_URI: ${{ steps.src.outputs.uri }}
+        run: |
+          set -euo pipefail
+          stem="$(basename "$SOURCE_URI")"; stem="${stem%.*}"
+          prompt=$(cat <<EOF
+          Run in RENDER mode per AGENTS.md. An EDIT pull request was merged to main.
+
+          Source video: ${SOURCE_URI}
+          Upload destination: gs://${RENDERED_BUCKET}/${stem}/final.mp4
+
+          Steps: gsutil cp the source locally, then run:
+            node scripts/render-and-assemble.mjs .work/source.mp4
+          Verify out/final.mp4 duration ~= the source duration, then:
+            gsutil cp out/final.mp4 gs://${RENDERED_BUCKET}/${stem}/final.mp4
+          Report the resulting gs:// URL. Do not open a PR; there are no code changes to commit.
+          EOF
+          )
+          jq -n \
+            --arg prompt "$prompt" \
+            --arg source "$JULES_REPO" \
+            '{prompt:$prompt, sourceContext:{source:$source, githubRepoContext:{startingBranch:"main"}}}' \
+          | curl -fsS -X POST "https://jules.googleapis.com/v1alpha/sessions" \
+              -H "Content-Type: application/json" \
+              -H "X-Goog-Api-Key: ${JULES_API_KEY}" \
+              -d @-
+          echo "Jules RENDER session requested for ${SOURCE_URI}"
