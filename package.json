@@ -7,10 +7,13 @@
   "private": true,
   "dependencies": {
     "@remotion/cli": "4.0.462",
+    "@remotion/google-fonts": "^4.0.462",
+    "@remotion/media": "^4.0.462",
+    "@remotion/tailwind-v4": "4.0.462",
+    "mediabunny": "^1.45.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.462",
-    "@remotion/tailwind-v4": "4.0.462",
     "tailwindcss": "4.0.0"
   },
   "devDependencies": {
@@ -18,6 +21,7 @@
     "@types/react": "19.2.7",
     "@types/web": "0.0.166",
     "eslint": "9.19.0",
+    "patch-package": "^8.0.1",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
   },

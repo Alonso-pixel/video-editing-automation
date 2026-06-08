@@ -5,3 +5,17 @@ dist
 
 # Ignore the output video from Git but not videos you import into src/.
 out
+
+# Agent / editor tool scaffolding
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.devin/
+.factory/
+.gemini/
+.junie/
+.kiro/
+.opencode/
+.playwright-mcp/

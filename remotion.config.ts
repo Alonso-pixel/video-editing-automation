@@ -10,4 +10,20 @@ import { enableTailwind } from '@remotion/tailwind-v4';
 
 Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
-Config.overrideWebpackConfig(enableTailwind);
+Config.setColorSpace("bt709");
+// Required for <HtmlInCanvas> WebGL overlay effects to render in Studio and CLI.
+Config.setChromiumOpenGlRenderer("angle");
+Config.overrideWebpackConfig((config) => {
+  // Apply Tailwind first
+  const tailwindConfig = enableTailwind(config);
+
+  // Fix Node.js v22 + webpack WASM hash crash
+  // by switching to Node's native xxhash64
+  return {
+    ...tailwindConfig,
+    output: {
+      ...tailwindConfig.output,
+      hashFunction: "xxhash64",
+    },
+  };
+});

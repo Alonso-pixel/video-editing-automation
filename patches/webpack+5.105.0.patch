@@ -1,0 +1,12 @@
+diff --git a/node_modules/webpack/lib/util/hash/wasm-hash.js b/node_modules/webpack/lib/util/hash/wasm-hash.js
+index 4cf8a8d..7634054 100644
+--- a/node_modules/webpack/lib/util/hash/wasm-hash.js
++++ b/node_modules/webpack/lib/util/hash/wasm-hash.js
+@@ -147,6 +147,7 @@ class WasmHash extends Hash {
+ 	 * @returns {void}
+ 	 */
+ 	_updateWithBuffer(data) {
++		if (!data) return;
+ 		const { exports, buffered, mem } = this;
+ 		const length = data.length;
+ 		if (buffered + length < this.chunkSize) {
