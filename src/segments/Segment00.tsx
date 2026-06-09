@@ -1,27 +1,28 @@
-import React from "react";
-import { AbsoluteFill, staticFile } from "remotion";
-import { Video } from "@remotion/media";
-import { COLORS } from "../styles";
-import { PopIn, Sfx, cardStyle } from "./overlay-kit";
+import { AbsoluteFill, Sequence, staticFile, useVideoConfig } from "remotion";
+import { Video, Audio } from "@remotion/media";
+import { PopIn, cardStyle } from "./overlay-kit";
 
 export const Segment00: React.FC = () => {
+  const { fps } = useVideoConfig();
+
   return (
     <AbsoluteFill>
+      {/* Base layer: the cropped original footage */}
       <Video src={staticFile("segments/segment_00.mp4")} />
-      <PopIn delay={10} from="top">
-        <div
-          style={{
-            ...cardStyle,
-            fontSize: 64,
-            background: `linear-gradient(135deg, ${COLORS.warningRed}, ${COLORS.warningRedLight})`,
-            border: "4px solid rgba(255,255,255,0.85)",
-            maxWidth: 880,
-          }}
-        >
-          ¿Miedo de matarlos? 😰
-        </div>
-      </PopIn>
-      <Sfx file="record-scratch.mp3" delay={10} volume={0.7} />
+
+      {/* Overlay layer */}
+      <Sequence from={Math.round(0.5 * fps)} layout="none">
+        <PopIn from="center">
+          <div style={{ ...cardStyle, background: "linear-gradient(to right, #EF5350, #FFCCBC)" }}>
+            ¡Dato Sorprendente! 😰
+          </div>
+        </PopIn>
+      </Sequence>
+
+      {/* Timed sound effect */}
+      <Sequence from={Math.round(0.5 * fps)} layout="none">
+        <Audio src={staticFile("pop.mp3")} volume={0.8} />
+      </Sequence>
     </AbsoluteFill>
   );
 };
