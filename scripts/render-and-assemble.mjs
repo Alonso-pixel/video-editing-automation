@@ -83,6 +83,8 @@ function main() {
       "No src/segments/Segment*.tsx found — nothing to render. " +
         "The assembler will still crop the full source into out/final.mp4."
     );
+  } else {
+    run("npx", ["remotion", "browser", "ensure"]);
   }
 
   for (const id of ids) {
