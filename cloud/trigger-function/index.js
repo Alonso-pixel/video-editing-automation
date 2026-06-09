@@ -57,6 +57,9 @@ function buildPrompt({ gsUri, brief, renderedBucket }) {
     "Steps: gsutil cp the source locally, probe it, plan edits in edited_script.md (cover every",
     "5s chunk), crop only the edited chunks into public/segments/, build one Segment<NN>.tsx",
     "overlay per edited chunk and register it in src/Root.tsx, then OPEN A PULL REQUEST.",
+    "Use source-specific overlay copy only; do not use generic labels like 'Dato Sorprendente'.",
+    "Do not delete shared project files. Only clean stale Segment<NN> and public/segments artifacts",
+    "if they would be rendered by mistake for this current source.",
     `Include this exact line in the PR body so the render workflow can find it: "Source: ${gsUri}"`,
     "Do not put anything under out/ in the PR. Do not render — stop after opening the PR.",
   ].join("\n");

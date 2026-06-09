@@ -53,6 +53,15 @@ read them as needed:
 - **Leave the comps in place** after rendering so a human can tweak them.
 - **Secrets:** never commit credentials. GCS access comes from the `GCP_SA_KEY` environment
   secret (configured in the Jules environment), activated by `jules-setup.sh`.
+- **Do not use generic overlay copy.** Text like "Amazing fact", "Dato sorprendente",
+  "Important", or other placeholder labels is a failed edit unless those exact words are in
+  the source/brief. Overlay copy must be grounded in the actual spoken line, on-screen action,
+  `.srt` cue, or uploader brief. If there is no concrete beat, leave the chunk unedited.
+- **Do not delete shared project files.** Never remove or blank
+  `src/segments/overlay-kit.tsx`, `src/styles.ts`, scripts, workflows, setup files, sound
+  effect assets, or cloud files. In EDIT mode you may replace stale `src/segments/Segment<NN>.tsx`
+  and `public/segments/segment_<NN>.mp4` artifacts only when they do not belong to the current
+  probed source video and would otherwise be rendered by mistake.
 
 ---
 
@@ -78,6 +87,9 @@ overlay compositions. **Do not render. Do not run `scripts/render-and-assemble.m
 3. **Decide what to edit** from the brief (and `.srt` cue timings if present). Good candidates:
    a surprising stat → emphasis pop-in + impact SFX; a reveal → wipe/scale-in; a reaction beat →
    character + speech bubble. Chunks with no clear benefit stay **untouched** (no crop, no render).
+   Do not invent generic "punchy" text. Use the real phrase, statistic, object, person, or action
+   from the source video/brief. If you cannot identify a specific phrase or visual beat for a
+   chunk, mark it "no edit".
 
 4. **Write `edited_script.md`** at the repo root covering **every** chunk (including "no edit"
    ones), per `rules/edited-script-format.md`.
@@ -89,6 +101,9 @@ overlay compositions. **Do not render. Do not run `scripts/render-and-assemble.m
    = the cropped clip via `<Video>` from `@remotion/media`, overlays + timed `<Audio>` SFX on top,
    `durationInFrames = round(chunkLength * fps)`. Register each in `src/Root.tsx`. Reuse
    `overlay-kit.tsx` primitives. Recipe in `rules/overlay-composition.md`.
+   Before changing `src/Root.tsx`, inspect it and preserve unrelated project exports/imports.
+   For this single-video pipeline, make the registered `Segment<NN>` list match the current
+   source's edited chunks, but do not delete shared project code to do it.
 
 7. **Open a Pull Request** (the API runs you with `automationMode: AUTO_CREATE_PR`). The PR must:
    - include `edited_script.md`, the new `public/segments/*.mp4`, `src/segments/Segment<NN>.tsx`,

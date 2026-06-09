@@ -2,7 +2,7 @@ name: Jules render on PR merge
 
 # When a Jules EDIT pull request is merged to main, start a Jules RENDER session that
 # renders the edited chunks inside its VM, assembles out/final.mp4, and uploads it to GCS.
-# Render only fires for merged PRs whose branch came from Jules (head_ref starts with "jules").
+# Render only fires for merged PRs whose body contains the required exact `Source: gs://...` line.
 
 on:
   pull_request:
@@ -21,11 +21,10 @@ permissions:
 
 jobs:
   render:
-    # Skip non-merges and non-Jules PRs (a closed-without-merge PR must not render).
+    # Skip non-merges. PRs without the required Source line exit cleanly before rendering.
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.merged == true &&
-       startsWith(github.event.pull_request.head.ref, 'jules'))
+      github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Resolve source gs:// URI
@@ -41,13 +40,16 @@ jobs:
             uri="$(printf '%s\n' "$PR_BODY" | sed -nE 's/^Source:[[:space:]]*(gs:\/\/[^[:space:])]+).*/\1/p' | head -n1)"
           fi
           if [ -z "$uri" ]; then
-            echo "::error::No source gs:// URI found (PR body 'Source:' line missing)."
-            exit 1
+            echo "No exact Source: gs://... line found; skipping render."
+            echo "should_render=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          echo "should_render=true" >> "$GITHUB_OUTPUT"
           echo "uri=$uri" >> "$GITHUB_OUTPUT"
           echo "Render source: $uri"
 
       - name: Start Jules RENDER session
+        if: steps.src.outputs.should_render == 'true'
         env:
           JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
           JULES_REPO: ${{ vars.JULES_REPO }}              # e.g. sources/github/<owner>/videos-remotion-veo
