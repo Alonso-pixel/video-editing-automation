@@ -20,3 +20,5 @@ out
 .kiro/
 .opencode/
 .playwright-mcp/
+google-cloud-sdk/
+google-cloud-cli-linux-x86_64.tar.gz
