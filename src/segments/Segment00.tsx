@@ -1,27 +1,31 @@
 import React from "react";
-import { AbsoluteFill, staticFile } from "remotion";
+import { AbsoluteFill } from "remotion";
 import { Video } from "@remotion/media";
-import { COLORS } from "../styles";
+import { staticFile } from "remotion";
 import { PopIn, Sfx, cardStyle } from "./overlay-kit";
+import { COLORS } from "../styles";
 
 export const Segment00: React.FC = () => {
   return (
     <AbsoluteFill>
+      {/* Base layer: original cropped segment */}
       <Video src={staticFile("segments/segment_00.mp4")} />
-      <PopIn delay={10} from="top">
+
+      {/* PopIn overlay */}
+      <PopIn delay={6} from="center">
         <div
           style={{
             ...cardStyle,
-            fontSize: 64,
-            background: `linear-gradient(135deg, ${COLORS.warningRed}, ${COLORS.warningRedLight})`,
-            border: "4px solid rgba(255,255,255,0.85)",
-            maxWidth: 880,
+            background: COLORS.healthGreen,
+            fontSize: 52,
           }}
         >
-          ¿Miedo de matarlos? 😰
+          🥛 Búlgaros de Leche
         </div>
       </PopIn>
-      <Sfx file="record-scratch.mp3" delay={10} volume={0.7} />
+
+      {/* Sound effect */}
+      <Sfx file="pop.mp3" delay={6} volume={0.8} />
     </AbsoluteFill>
   );
 };
